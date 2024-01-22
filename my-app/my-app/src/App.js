@@ -1,5 +1,6 @@
 import { useState } from 'react';
 
+//FUNCTIONAL COMPONENT TO EXPLAIN AN INDIVIDUAL BUTTON. 
 function Square({ value, onSquareClick }) {
   return (
     <button className="square" onClick={onSquareClick}>
@@ -7,6 +8,9 @@ function Square({ value, onSquareClick }) {
     </button>
   );
 }
+
+//REPRESENTS THE GAME BOARD & MANAGES THE STATE OF THE SQUARES
+//HANDLECLICK function is to update the state when a square is clicked
 
 function Board({ xIsNext, squares, onPlay }) {
   function handleClick(i) {
@@ -30,6 +34,7 @@ function Board({ xIsNext, squares, onPlay }) {
     status = 'Next player: ' + (xIsNext ? 'X' : 'O');
   }
 
+  
   return (
     <>
       <div className="status">{status}</div>
@@ -52,18 +57,21 @@ function Board({ xIsNext, squares, onPlay }) {
   );
 }
 
+//maintains the game state using the history array and currentMove state variable.
 export default function Game() {
   const [history, setHistory] = useState([Array(9).fill(null)]);
   const [currentMove, setCurrentMove] = useState(0);
   const xIsNext = currentMove % 2 === 0;
   const currentSquares = history[currentMove];
 
+//handlePlay function is called when a square is clicked and it updates the game history.
   function handlePlay(nextSquares) {
     const nextHistory = [...history.slice(0, currentMove + 1), nextSquares];
     setHistory(nextHistory);
     setCurrentMove(nextHistory.length - 1);
   }
 
+//jumpTo function allows jumping to a specific move in the game history.
   function jumpTo(nextMove) {
     setCurrentMove(nextMove);
   }
