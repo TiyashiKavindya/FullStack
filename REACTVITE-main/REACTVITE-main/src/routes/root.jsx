@@ -1,4 +1,27 @@
+//this is to inform the root route the place where we want to render its child routes
+import { 
+  Outlet, 
+  NavLink, 
+  useLoaderData, 
+  Form, 
+  redirect,
+  useNavigation,
+} from "react-router-dom";
+import { getContacts, createContact } from "../contacts";
+
+export async function action() {
+  const contact = await createContact();
+  return redirect(`/contacts/${contact.id}/edit`);
+}
+
+export async function loader() {
+  const contacts = await getContacts();
+  return { contacts };
+}
+
 export default function Root() {
+    const { contacts } = useLoaderData();
+    const navigation = useNavigation();
     return (
       <>
         <div id="sidebar">
@@ -12,6 +35,7 @@ export default function Root() {
                 type="search"
                 name="q"
               />
+              
               <div
                 id="search-spinner"
                 aria-hidden
@@ -22,22 +46,55 @@ export default function Root() {
                 aria-live="polite"
               ></div>
             </form>
-            <form method="post">
-              <button type="submit">New</button>
-            </form>
+            <Form method="post">
+                <button type="submit">New</button>
+              </Form>
             </div>
         <nav>
-          <ul>
-            <li>
-              <a href={`/contacts/1`}>Your Name</a>
-            </li>
-            <li>
-              <a href={`/contacts/2`}>Your Friend</a>
-            </li>
-          </ul>
+        {contacts && Array.isArray(contacts) && contacts.length ?  (
+            <ul>
+              {contacts.map((contact) => (
+                <li key={contact.id}>
+                  <NavLink
+                    to={`contacts/${contact.id}`}
+                    className={({ isActive, isPending }) =>
+                      isActive
+                        ? "active"
+                        : isPending
+                        ? "pending"
+                        : ""
+                    }
+                  >
+                    {<NavLink to={`contacts/${contact.id}`}>
+                    {contact.first || contact.last ? (
+                      <>
+                        {contact.first} {contact.last}
+                      </>
+                    ) : (
+                      <i>No Name</i>
+                    )}{" "}
+                    {contact.favorite && <span>★</span>}
+                  </NavLink>}
+                  </NavLink>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>
+              <i>No contacts</i>
+            </p>
+          )}
+          
         </nav>
-      </div>
-      <div id="detail"></div>
+        </div>
+      <div 
+      id="detail"
+      className={
+        navigation.state === "loading" ? "loading" : ""
+      }
+      >
+      <Outlet />
+      </div>   
     </>
   );
 }
