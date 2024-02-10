@@ -1,73 +1,72 @@
-import localforage from "localforage";
-import { matchSorter } from "match-sorter";
-import sortBy from "sort-by";
+import axios from "axios";
 
-export async function getContacts(query) {
-  await fakeNetwork(`getContacts:${query}`);
-  let contacts = await localforage.getItem("contacts");
-  if (!contacts) contacts = [];
-  if (query) {
-    contacts = matchSorter(contacts, query, { keys: ["first", "last"] });
+// Create Axios instance
+const Axios = axios.create({
+
+  baseURL: "http://localhost:5000", // Default base URL
+  timeout: 3500, // Maximum timeout
+  Headers: {
+    "Content-Type": "application/json",
+    "Accept": "application/json"
   }
-  return contacts.sort(sortBy("last", "createdAt"));
+})
+
+// Get all contacts
+export async function getContacts() {
+  try {
+    const response = await Axios.get('/contacts');
+    return response.data;
+  } catch (error) {
+    console.log(error);
+  }
 }
 
-export async function createContact() {
-  await fakeNetwork();
-  let id = Math.random().toString(36).substring(2, 9);
-  let contact = { id, createdAt: Date.now() };
-  let contacts = await getContacts();
-  contacts.unshift(contact);
-  await set(contacts);
-  return contact;
+// Search contacts
+export async function searchContacts(q) {
+  try {
+    const response = await Axios.get(`/contacts/search?q=${q}`);
+    return response.data;
+  } catch (error) {
+    console.log(error);
+  }
 }
 
+// Get contact information by Id
 export async function getContact(id) {
-  await fakeNetwork(`contact:${id}`);
-  let contacts = await localforage.getItem("contacts");
-  let contact = contacts.find(contact => contact.id === id);
-  return contact ?? null;
+  try {
+    const response = await Axios.get(`/contacts/${id}`);
+    return response.data;
+  } catch (error) {
+    console.log(error);
+  }
 }
 
-export async function updateContact(id, updates) {
-  await fakeNetwork();
-  let contacts = await localforage.getItem("contacts");
-  let contact = contacts.find(contact => contact.id === id);
-  if (!contact) throw new Error("No contact found for", id);
-  Object.assign(contact, updates);
-  await set(contacts);
-  return contact;
+// Create a new contact
+export async function createContact(data) {
+  try {
+    const response = await Axios.post('/contacts', data);
+    return response.data;
+  } catch (error) {
+    console.log(error);
+  }
 }
 
+// Update contact information
+export async function updateContact(id, data) {
+  try {
+    const response = await Axios.patch(`/contacts/${id}`, data);
+    return response.data;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+// Delete contact
 export async function deleteContact(id) {
-  let contacts = await localforage.getItem("contacts");
-  let index = contacts.findIndex(contact => contact.id === id);
-  if (index > -1) {
-    contacts.splice(index, 1);
-    await set(contacts);
-    return true;
+  try {
+    const response = await Axios.delete(`/contacts/${id}`);
+    return response.data;
+  } catch (error) {
+    console.log(error);
   }
-  return false;
-}
-
-function set(contacts) {
-  return localforage.setItem("contacts", contacts);
-}
-
-// fake a cache so we don't slow down stuff we've already seen
-let fakeCache = {};
-
-async function fakeNetwork(key) {
-  if (!key) {
-    fakeCache = {};
-  }
-
-  if (fakeCache[key]) {
-    return;
-  }
-
-  fakeCache[key] = true;
-  return new Promise(res => {
-    setTimeout(res, Math.random() * 800);
-  });
 }
