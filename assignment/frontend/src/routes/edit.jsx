@@ -16,7 +16,6 @@ import {
 export default function EditContact() {
   const { contact } = useLoaderData();
   const navigate = useNavigate();
-
   return (
     <Form method="post" id="contact-form">
       <p>
@@ -70,6 +69,7 @@ export default function EditContact() {
         onClick={() => {
             navigate(-1);
           }}>Cancel</button>
+  
       </p>
     </Form>
   );

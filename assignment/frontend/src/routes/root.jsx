@@ -7,17 +7,21 @@ import {
     redirect,
     useNavigation,
   } from "react-router-dom";
-  import { getContacts, createContact } from "../contacts";
+  import { getContacts, searchContacts, createContact } from "../contacts";
   
   export async function action() {
     const contact = await createContact();
-    return redirect(`/contacts/${contact.id}/edit`);
+    return redirect(`/contacts/${contact._id}/edit`);
   }
   
   export async function loader({ request }) {
     const url = new URL(request.url);
     const q = url.searchParams.get("q");
-    const contacts = await getContacts(q);
+    if(q){
+      const searchResults = await searchContacts(q);
+      return { contacts: searchResults };
+    }
+    const contacts = await getContacts();
     return { contacts };
   }
   
@@ -48,7 +52,7 @@ import {
                   aria-live="polite"
                 ></div>
               </Form>
-              <Form method="post">
+              <Form method="post" >
                   <button type="submit">New</button>
                 </Form>
               </div>
@@ -58,7 +62,7 @@ import {
                 {contacts.map((contact) => (
                   <li key={contact.id}>
                     <NavLink
-                      to={`contacts/${contact.id}`}
+                      to={`contacts/${contact._id}`}
                       className={({ isActive, isPending }) =>
                         isActive
                           ? "active"
@@ -67,7 +71,7 @@ import {
                           : ""
                       }
                     >
-                      {<NavLink to={`contacts/${contact.id}`}>
+                      {<NavLink to={`contacts/${contact._id}`}>
                       {contact.first || contact.last ? (
                         <>
                           {contact.first} {contact.last}
